@@ -1,0 +1,84 @@
+name: Lint Code
+
+on:
+  - pull_request
+
+jobs:
+  actionlint:
+    name: GitHub Actions
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+      - name: Lint GitHub Actions Workflow Files
+        uses: docker://rhysd/actionlint@sha256:daa1edae4a6366f320b68abb60b74fb59a458c17b61938d3c62709d92b231558 # v1.6.27
+        with:
+          args: -color
+  yamllint:
+    name: YAML
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+      - name: Setup Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
+        with:
+          python-version: '3.12'
+      - name: Install yamllint
+        run: |
+          pip install --upgrade pip
+          pip install yamllint
+      - name: Lint YAML Files
+        run: |
+          yamllint .
+  golangci-lint:
+    name: Go
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+      - name: Setup Go
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Lint Go Files
+        uses: golangci/golangci-lint-action@3cfe3a4abbb849e10058ce4af15d205b6da42804 # v4.0.0
+        with:
+          version: latest
+          skip-pkg-cache: true
+          skip-build-cache: true
+  tflint:
+    name: Terraform
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+      - name: Cache TFLint Plugins
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # 4.0.2
+        with:
+          path: ~/.tflint/plugins
+          key: tflint-${{ hashFiles('.tflint.hcl') }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36 # v3.0.0
+        with:
+          terraform_version: 1.7.4
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@19a52fbac37dacb22a09518e4ef6ee234f2d4987 # v4.0.0
+        with:
+          tflint_version: v0.50.3
+      - name: Lint Terraform Files
+        run: |
+          tflint --init
+          tflint --recursive --format=compact
+  markdownlint:
+    name: Markdown
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+      - name: Lint Markdown Files
+        uses: articulate/actions-markdownlint@17b8abe7407cd17590c006ecc837c35e1ac3ed83 # v1.1.0
+        with:
+          config: .markdownlint.yml
+          ignore: docs

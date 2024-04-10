@@ -1,0 +1,18 @@
+branches:
+  - main
+
+ci: false
+
+plugins:
+  - - '@semantic-release/commit-analyzer'
+    - preset: conventionalCommits
+      releaseRules:
+        - type: docs
+          release: patch
+        - type: ci
+          release: patch
+        - type: major
+          release: major
+  - '@semantic-release/git'
+
+preset: conventionalcommits
