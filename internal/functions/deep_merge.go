@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var _ function.Function = DeepMerge{}
@@ -23,27 +24,27 @@ func (r DeepMerge) Definition(_ context.Context, _ function.DefinitionRequest, r
 		Summary:             "Merges an arbitrary number of maps or objects into a single map or object.",
 		Description:         "Deeply merges an arbitrary number of maps or objects into a single map or object.",
 		MarkdownDescription: "Deeply merges an arbitrary number of maps or objects into a single map or object.",
-		Parameters: []function.Parameter{
-			function.DynamicParameter{
-				Name:                "maps",
-				Description:         "An arbitrary number of maps or objects to merge.",
-				MarkdownDescription: "An arbitrary number of maps or objects to merge.",
-				AllowNullValue:      true,
-				AllowUnknownValues:  true,
-			},
+		VariadicParameter: function.DynamicParameter{
+			Name:                "maps",
+			Description:         "An arbitrary number of maps or objects to merge.",
+			MarkdownDescription: "An arbitrary number of maps or objects to merge.",
+			AllowNullValue:      true,
+			AllowUnknownValues:  true,
 		},
-		Return: function.StringReturn{},
+		Return: function.DynamicReturn{},
 	}
 }
 
 func (r DeepMerge) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-	var data string
+	var inputs types.Tuple
 
-	resp.Error = function.ConcatFuncErrors(req.Arguments.Get(ctx, &data))
+	resp.Error = function.ConcatFuncErrors(req.Arguments.Get(ctx, &inputs))
 
 	if resp.Error != nil {
 		return
 	}
 
-	resp.Error = function.ConcatFuncErrors(resp.Result.Set(ctx, data))
+	firstInput := inputs.Elements()[0] // basetypes.DynamicType
+
+	resp.Error = function.ConcatFuncErrors(resp.Result.Set(ctx, firstInput))
 }
