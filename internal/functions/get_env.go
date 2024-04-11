@@ -21,7 +21,7 @@ func (r GetEnvironmentVariable) Metadata(_ context.Context, req function.Metadat
 
 func (r GetEnvironmentVariable) Definition(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
 	resp.Definition = function.Definition{
-		Summary:             "Get the value of an environment variable.",
+		Summary:             "Return the value of an environment variable given the variable name.",
 		Description:         "Get the value of an environment variable.",
 		MarkdownDescription: "Get the value of an environment variable.",
 		Parameters: []function.Parameter{
