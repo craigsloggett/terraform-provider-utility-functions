@@ -1,4 +1,4 @@
 output "example" {
-  description = "The output of a provider-defined function."
-  value       = provider::utilities::generate_name("standard_name")
+  description = "The value of a given environment variable."
+  value       = provider::utilities::get_env("GOPATH")
 }
