@@ -2,6 +2,7 @@ package functions
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -36,7 +37,7 @@ func (r DeepMerge) Definition(_ context.Context, _ function.DefinitionRequest, r
 }
 
 func (r DeepMerge) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-	var inputs types.Tuple
+	var inputs []types.Dynamic
 
 	resp.Error = function.ConcatFuncErrors(req.Arguments.Get(ctx, &inputs))
 
@@ -44,7 +45,38 @@ func (r DeepMerge) Run(ctx context.Context, req function.RunRequest, resp *funct
 		return
 	}
 
-	firstInput := inputs.Elements()[0] // basetypes.DynamicType
+	output := make(map[string]interface{})
 
-	resp.Error = function.ConcatFuncErrors(resp.Result.Set(ctx, firstInput))
+	for _, input := range inputs {
+
+		if input.IsNull() {
+			continue
+		}
+
+		terraformValue, err := input.ToTerraformValue(ctx)
+
+		if err != nil {
+			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("ERROR: %s", err)))
+			return
+		}
+
+		if terraformValue.IsKnown() {
+			var intermediateMap map[string]interface{}
+
+			err = terraformValue.As(&intermediateMap)
+
+			if err != nil {
+				resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("ERROR: %s", err)))
+				return
+			}
+		} else {
+			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("ERROR: terraformValue is not known.")))
+			return
+		}
+	}
+
+	resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("ERROR: %T", output)))
+	return
+
+	//resp.Error = function.ConcatFuncErrors(resp.Result.Set(ctx, types.DynamicValue(mapValue)))
 }
