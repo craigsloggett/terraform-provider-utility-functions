@@ -46,7 +46,7 @@ func (r DeepMerge) Run(ctx context.Context, req function.RunRequest, resp *funct
 		return
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]tftypes.Value)
 
 	for _, input := range inputs {
 
@@ -70,8 +70,14 @@ func (r DeepMerge) Run(ctx context.Context, req function.RunRequest, resp *funct
 				resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("ERROR: %s", err)))
 				return
 			}
-			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("DEBUG: %T", intermediateMap)))
-			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("DEBUG: %s", intermediateMap)))
+			// Process Intermediate Map
+			for key, value := range intermediateMap {
+				output[key] = value
+			}
+
+			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("DEBUG: %T", output)))
+			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("DEBUG: %s", output)))
+			//
 		} else {
 			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("ERROR: terraformValue is not known.")))
 			return
