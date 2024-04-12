@@ -7,7 +7,7 @@ description: |-
 
 # Utility Functions Provider
 
-The Utility Functions provider is used to add utlity functions to a Terraform
+The Utility Functions provider is used to add utility functions to a Terraform
 project. The provider has no configuration.
 
 ## Example Usage
@@ -20,7 +20,7 @@ terraform {
   required_providers {
     utilities = {
       source  = "craigsloggett/utility-functions"
-      version = "0.0.1"
+      version = "0.1.0"
     }
   }
 }
