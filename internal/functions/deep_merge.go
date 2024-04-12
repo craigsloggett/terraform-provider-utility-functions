@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var _ function.Function = DeepMerge{}
@@ -61,7 +62,7 @@ func (r DeepMerge) Run(ctx context.Context, req function.RunRequest, resp *funct
 		}
 
 		if terraformValue.IsKnown() {
-			var intermediateMap map[string]interface{}
+			intermediateMap := make(map[string]tftypes.Value)
 
 			err = terraformValue.As(&intermediateMap)
 
@@ -69,6 +70,8 @@ func (r DeepMerge) Run(ctx context.Context, req function.RunRequest, resp *funct
 				resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("ERROR: %s", err)))
 				return
 			}
+			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("DEBUG: %T", intermediateMap)))
+			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("DEBUG: %s", intermediateMap)))
 		} else {
 			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("ERROR: terraformValue is not known.")))
 			return
