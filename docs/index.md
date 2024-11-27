@@ -20,7 +20,7 @@ terraform {
   required_providers {
     utilities = {
       source  = "craigsloggett/utility-functions"
-      version = "0.1.0"
+      version = "0.1.1"
     }
   }
 }
