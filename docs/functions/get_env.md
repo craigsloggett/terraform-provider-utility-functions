@@ -1,5 +1,5 @@
 ---
-page_title: "get_env function - GitHub"
+page_title: "get_env function - Utility Functions"
 subcategory: ""
 description: |-
   Get the value of an environment variable.

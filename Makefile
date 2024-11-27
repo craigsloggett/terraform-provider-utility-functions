@@ -85,7 +85,7 @@ lint: tools update
 .PHONY: docs
 docs: tools update install
 	@echo "Generating Docs..."
-	@$(GOPATH)/bin/./tfplugindocs generate -rendered-provider-name "GitHub" >/dev/null
+	@$(GOPATH)/bin/./tfplugindocs generate -rendered-provider-name "Utility Functions" >/dev/null
 
 .PHONY: test
 test: install
