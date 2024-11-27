@@ -1,8 +1,6 @@
 module github.com/craigsloggett/terraform-provider-utility-functions
 
-go 1.22.7
-
-toolchain go1.23.3
+go 1.23.3
 
 require github.com/hashicorp/terraform-plugin-framework v1.13.0
 
