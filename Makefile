@@ -7,7 +7,7 @@ PROVIDER_NAME := terraform-provider-github
 
 # Versions
 go_version           := 1.23.3
-golangci_version     := 1.62.2
+golangci_version     := 2.0.2
 tfplugindocs_version := 0.20.1
 
 # Operating System and Architecture
