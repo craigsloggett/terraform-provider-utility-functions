@@ -1,6 +1,6 @@
-# terraform-provider-template
+# Utility Functions
 
-A GitHub repository template for developing a new Terraform provider.
+The Utility Functions provider is used to add utility functions to a Terraform project. The provider has no configuration.
 
 ## Required Secrets
 
