@@ -13,8 +13,8 @@ Return a random string, storing the output in state to use in subsequent runs.
 
 ```terraform
 output "example" {
-  description = "The value of a given environment variable."
-  value       = provider::utilities::get_env("GOPATH")
+  description = "The result of generating a random string of length 10."
+  value       = provider::utilities::generate_random_string(10)
 }
 ```
 
