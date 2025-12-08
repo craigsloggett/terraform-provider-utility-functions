@@ -2,7 +2,7 @@ module github.com/craigsloggett/terraform-provider-utility-functions
 
 go 1.24.0
 
-require github.com/hashicorp/terraform-plugin-framework v1.16.1
+require github.com/hashicorp/terraform-plugin-framework v1.17.0
 
 require (
 	github.com/fatih/color v1.18.0 // indirect
