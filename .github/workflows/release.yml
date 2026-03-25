@@ -1,9 +1,17 @@
 name: Release
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - Test
     branches:
       - main
+    types:
+      - completed
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -11,43 +19,51 @@ permissions:
   pull-requests: write
 
 jobs:
-  tag:
-    name: Tag Release
-    runs-on: ubuntu-22.04
+  release:
+    name: GitHub
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    outputs:
+      new-release-published: ${{ steps.release.outputs.new-release-published }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a GitHub Release
+        id: release
+        uses: craigsloggett/create-github-release@bef3a8d44ef83bb53291139c5757dab76d087f16 # v1.0.9
         with:
-          persist-credentials: false
-      - name: Generate Tag
-        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
-        with:
-          semantic_version: 23.0.5
-          extra_plugins: |
-            @semantic-release/git@10.0.1
-            conventional-changelog-conventionalcommits@7.0.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
   goreleaser:
     name: GoReleaser
-    needs: tag
-    runs-on: ubuntu-22.04
+    needs: release
+    if: needs.release.outputs.new-release-published == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
+
       - name: Setup Go
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           go-version-file: go.mod
           cache: true
+
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7.0.0
         id: import_gpg
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@ec59f474b9834571250b370d4735c50f8e2d1e29 # v7.0.0
         with:

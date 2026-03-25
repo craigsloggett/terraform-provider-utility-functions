@@ -1,4 +1,4 @@
-name: Validate
+name: Pre-release
 
 on:
   pull_request_target:
@@ -11,7 +11,7 @@ permissions:
   pull-requests: read
 
 jobs:
-  validate:
+  title:
     name: Semantic Title
     runs-on: ubuntu-22.04
     steps:
