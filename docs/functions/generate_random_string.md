@@ -1,5 +1,5 @@
 ---
-page_title: "generate_random_string function - GitHub"
+page_title: "generate_random_string function - Utility Functions"
 subcategory: ""
 description: |-
   Return a random string.

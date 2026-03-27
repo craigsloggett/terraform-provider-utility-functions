@@ -7,11 +7,13 @@ issues:
 linters:
   default: none
   enable:
-    - copyloopvar
+    - bodyclose
     - durationcheck
     - errcheck
+    - errorlint
     - forcetypeassert
     - godot
+    - gosec
     - govet
     - ineffassign
     - makezero
@@ -37,6 +39,7 @@ linters:
 formatters:
   enable:
     - gofmt
+    - goimports
   exclusions:
     generated: lax
     paths:

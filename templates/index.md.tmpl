@@ -1,5 +1,4 @@
 ---
-layout: ""
 page_title: "Utility Functions Provider"
 description: |-
   The Utility Functions provider provides useful functions to a Terraform project.
