@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Lint Workflow Files
-        uses: craigsloggett/lint-github-actions-workflows@bf90c927b04eeaffc4cc111083e351de7582b91e # v1.0.2
+        uses: craigsloggett/lint-github-actions-workflows@e35be5a4bc8d07dd4e9e7410f26205820ae0e064 # v1.0.3
 
   yamllint:
     name: YAML
@@ -44,12 +44,11 @@ jobs:
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           go-version-file: go.mod
-          cache: true
 
       - name: Lint Go Files
         uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
         with:
-          version: v2.11.3
+          version: v2.11.4
 
   tidy:
     name: Go Mod Tidy
@@ -63,7 +62,6 @@ jobs:
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           go-version-file: go.mod
-          cache: true
 
       - name: Check go.mod and go.sum
         run: |
@@ -82,15 +80,14 @@ jobs:
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           go-version-file: go.mod
-          cache: true
 
       - name: Install govulncheck
-        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.1.4
 
       - name: Run govulncheck
         run: govulncheck ./...
 
-  tflint:
+  terraform-fmt:
     name: Terraform
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -101,28 +98,28 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
         with:
-          terraform_version: 1.14.0
-
-      - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@b480b8fcdaa6f2c577f8e4fa799e89e756bb7c93 # v6.2.2
-        with:
-          tflint_version: v0.50.3
+          terraform_version: 1.14.8
 
       - name: Lint Terraform Files
         run: |
-          tflint --init
-          tflint --recursive --format=compact
+          terraform fmt -recursive -check
 
-  markdownlint:
-    name: Markdown
+  tfplugindocs:
+    name: Docs
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Lint Markdown Files
-        uses: articulate/actions-markdownlint@17b8abe7407cd17590c006ecc837c35e1ac3ed83 # v1.1.0
+      - name: Setup Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
-          config: .markdownlint.yml
-          ignore: docs
+          go-version-file: go.mod
+
+      - name: Validate Docs
+        run: |-
+          go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v0.24.0 validate
+          go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v0.24.0 generate \
+            -rendered-provider-name "Utility Functions" >/dev/null
+          git diff --exit-code docs/
