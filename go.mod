@@ -1,6 +1,6 @@
 module github.com/craigsloggett/terraform-provider-utility-functions
 
-go 1.25.8
+go 1.25.9
 
 require github.com/hashicorp/terraform-plugin-framework v1.19.0
 
