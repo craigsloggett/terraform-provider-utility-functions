@@ -2,7 +2,7 @@ PROVIDER_NAME         := terraform-provider-utility-functions
 BUILD_DIR             := .local/builds
 PLATFORMS             := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
 GOLANGCI_LINT_VERSION := v2.11.4
-GOVULNCHECK_VERSION   := v1.1.4
+GOVULNCHECK_VERSION   := v1.2.0
 TFPLUGINDOCS_VERSION  := v0.24.0
 
 .PHONY: all build clean docs format install lint test testacc update
