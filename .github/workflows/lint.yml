@@ -119,7 +119,7 @@ jobs:
 
       - name: Validate Docs
         run: |-
-          go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v0.24.0 validate
-          go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v0.24.0 generate \
+          go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v0.25.0 validate
+          go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v0.25.0 generate \
             -rendered-provider-name "Utility Functions" >/dev/null
           git diff --exit-code docs/
