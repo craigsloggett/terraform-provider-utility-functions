@@ -2,7 +2,7 @@ PROVIDER_NAME         := terraform-provider-utility-functions
 BUILD_DIR             := .local/builds
 PLATFORMS             := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
 GOLANGCI_LINT_VERSION := v2.11.4
-GOVULNCHECK_VERSION   := v1.2.0
+GOVULNCHECK_VERSION   := v1.3.0
 TFPLUGINDOCS_VERSION  := v0.25.0
 GO_VERSION := $(shell awk '/^go /{print $$2}' go.mod)
 
