@@ -98,7 +98,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
         with:
-          terraform_version: 1.14.8
+          terraform_version: 1.14.9
 
       - name: Lint Terraform Files
         run: |
