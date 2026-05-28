@@ -36,7 +36,7 @@ jobs:
         id: release
         uses: craigsloggett/create-github-release@afe4170133e10ece0944212d5f105035758ce840 # v1.0.24
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   goreleaser:
     name: GoReleaser
