@@ -2,21 +2,26 @@
 page_title: "deep_merge function - Utility Functions"
 subcategory: ""
 description: |-
-  Deeply merges an arbitrary number of maps or objects into a single map or object.
+  Deeply merges an arbitrary number of maps or objects into a single object. When a key collides and both values are maps or objects, they are merged recursively; otherwise the later value replaces the earlier one, including values of a different type.
 ---
 
 # deep_merge (function)
 
-Merges an arbitrary number of maps or objects into a single map or object.
+Deeply merges an arbitrary number of maps or objects into a single object.
 
 ## Example Usage
 
 ```terraform
 output "example" {
-  description = "The result of deeply merging two maps."
+  description = "The result of deeply merging two nested objects."
   value = provider::utilities::deep_merge(
-    tomap({ a = "test", b = "b1", c = "c1" }),
-    tomap({ a = "testing", b = "b2", c = "c2", d = "d2" })
+    {
+      ports = { http = 80, https = 443 }
+      tags  = { environment = "development", team = "platform" }
+    },
+    {
+      tags = { environment = "production" }
+    }
   )
 }
 ```

@@ -3,9 +3,11 @@ package functions
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -23,9 +25,9 @@ func (r DeepMerge) Metadata(_ context.Context, req function.MetadataRequest, res
 
 func (r DeepMerge) Definition(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
 	resp.Definition = function.Definition{
-		Summary:             "Merges an arbitrary number of maps or objects into a single map or object.",
-		Description:         "Deeply merges an arbitrary number of maps or objects into a single map or object.",
-		MarkdownDescription: "Deeply merges an arbitrary number of maps or objects into a single map or object.",
+		Summary:             "Deeply merges an arbitrary number of maps or objects into a single object.",
+		Description:         "Deeply merges an arbitrary number of maps or objects into a single object. When a key collides and both values are maps or objects, they are merged recursively; otherwise the later value replaces the earlier one, including values of a different type.",
+		MarkdownDescription: "Deeply merges an arbitrary number of maps or objects into a single object. When a key collides and both values are maps or objects, they are merged recursively; otherwise the later value replaces the earlier one, including values of a different type.",
 		VariadicParameter: function.DynamicParameter{
 			Name:                "maps",
 			Description:         "An arbitrary number of maps or objects to merge.",
@@ -35,6 +37,75 @@ func (r DeepMerge) Definition(_ context.Context, _ function.DefinitionRequest, r
 		},
 		Return: function.DynamicReturn{},
 	}
+}
+
+// mergeable reports whether a value can participate in a recursive merge,
+// requiring it to be a known, non-null map or object.
+func mergeable(v tftypes.Value) bool {
+	if !v.IsKnown() || v.IsNull() {
+		return false
+	}
+
+	switch v.Type().(type) {
+	case tftypes.Object, tftypes.Map:
+		return true
+	default:
+		return false
+	}
+}
+
+// objectValue rebuilds a merged node as an object so that sibling values of
+// different types, which a map cannot represent, remain valid.
+func objectValue(m map[string]tftypes.Value) tftypes.Value {
+	attributeTypes := make(map[string]tftypes.Type, len(m))
+
+	for key, value := range m {
+		attributeTypes[key] = value.Type()
+	}
+
+	return tftypes.NewValue(tftypes.Object{AttributeTypes: attributeTypes}, m)
+}
+
+// mergeValues merges later over earlier, recursing only when both sides are
+// known, non-null maps or objects; otherwise later wins.
+func mergeValues(earlier, later tftypes.Value) (tftypes.Value, error) {
+	if !mergeable(earlier) || !mergeable(later) {
+		return later, nil
+	}
+
+	earlierMap := make(map[string]tftypes.Value)
+
+	if err := earlier.As(&earlierMap); err != nil {
+		return tftypes.Value{}, err
+	}
+
+	laterMap := make(map[string]tftypes.Value)
+
+	if err := later.As(&laterMap); err != nil {
+		return tftypes.Value{}, err
+	}
+
+	merged := make(map[string]tftypes.Value, len(earlierMap)+len(laterMap))
+
+	maps.Copy(merged, earlierMap)
+
+	for key, value := range laterMap {
+		existing, ok := merged[key]
+
+		if !ok {
+			merged[key] = value
+			continue
+		}
+
+		mergedChild, err := mergeValues(existing, value)
+		if err != nil {
+			return tftypes.Value{}, err
+		}
+
+		merged[key] = mergedChild
+	}
+
+	return objectValue(merged), nil
 }
 
 func (r DeepMerge) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
@@ -48,43 +119,70 @@ func (r DeepMerge) Run(ctx context.Context, req function.RunRequest, resp *funct
 
 	output := make(map[string]tftypes.Value)
 
-	for _, input := range inputs {
-
-		if input.IsNull() {
+	for i, input := range inputs {
+		if input.IsNull() || input.IsUnderlyingValueNull() {
 			continue
+		}
+
+		// An unknown argument makes the entire result unknown, matching the
+		// behavior of Terraform's builtin merge function.
+		if input.IsUnknown() || input.IsUnderlyingValueUnknown() {
+			resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, types.DynamicUnknown()))
+			return
 		}
 
 		terraformValue, err := input.ToTerraformValue(ctx)
 
 		if err != nil {
-			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("ERROR: %s", err)))
+			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError("Unable to Convert Argument: "+err.Error()))
 			return
 		}
 
-		if terraformValue.IsKnown() {
-			intermediateMap := make(map[string]tftypes.Value)
+		switch terraformValue.Type().(type) {
+		case tftypes.Object, tftypes.Map:
+		default:
+			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewArgumentFuncError(int64(i), fmt.Sprintf("Invalid Argument Type: arguments must be maps or objects, got %s", terraformValue.Type())))
+			return
+		}
 
-			err = terraformValue.As(&intermediateMap)
+		argumentMap := make(map[string]tftypes.Value)
 
+		if err := terraformValue.As(&argumentMap); err != nil {
+			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewArgumentFuncError(int64(i), "Invalid Argument: "+err.Error()))
+			return
+		}
+
+		for key, value := range argumentMap {
+			existing, ok := output[key]
+
+			if !ok {
+				output[key] = value
+				continue
+			}
+
+			merged, err := mergeValues(existing, value)
 			if err != nil {
-				resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("ERROR: %s", err)))
+				resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError("Unable to Merge Values: "+err.Error()))
 				return
 			}
-			// Process Intermediate Map
-			for key, value := range intermediateMap {
-				output[key] = value
-			}
 
-			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("DEBUG: %T", output)))
-			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("DEBUG: %s", output)))
-			//
-		} else {
-			resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError("ERROR: terraformValue is not known."))
-			return
+			output[key] = merged
 		}
 	}
 
-	resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("ERROR: %T", output)))
+	result, err := basetypes.DynamicType{}.ValueFromTerraform(ctx, objectValue(output))
 
-	//resp.Error = function.ConcatFuncErrors(resp.Result.Set(ctx, types.DynamicValue(mapValue)))
+	if err != nil {
+		resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError("Unable to Convert Result: "+err.Error()))
+		return
+	}
+
+	dynamicResult, ok := result.(types.Dynamic)
+
+	if !ok {
+		resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError("Unable to Convert Result: unexpected result type."))
+		return
+	}
+
+	resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, dynamicResult))
 }
