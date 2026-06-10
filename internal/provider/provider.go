@@ -45,5 +45,6 @@ func (p *UtilityFunctionsProvider) Functions(ctx context.Context) []func() funct
 	return []func() function.Function{
 		functions.NewGetEnvironmentVariable,
 		functions.NewGenerateRandomString,
+		functions.NewDeepMerge,
 	}
 }
