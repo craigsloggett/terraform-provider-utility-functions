@@ -221,7 +221,7 @@ func TestDeepMergeRun(t *testing.T) {
 				Result: function.NewResultData(types.DynamicNull()),
 			}
 
-			functions.NewDeepMerge().Run(ctx, req, &resp)
+			functions.NewDeepMergeFunction().Run(ctx, req, &resp)
 
 			if test.wantError {
 				if resp.Error == nil {

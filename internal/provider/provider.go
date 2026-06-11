@@ -43,8 +43,8 @@ func (p *UtilityFunctionsProvider) Resources(_ context.Context) []func() resourc
 
 func (p *UtilityFunctionsProvider) Functions(ctx context.Context) []func() function.Function {
 	return []func() function.Function{
-		functions.NewGetEnvironmentVariable,
+		functions.NewGetEnvironmentVariableFunction,
 		functions.NewGenerateRandomString,
-		functions.NewDeepMerge,
+		functions.NewDeepMergeFunction,
 	}
 }

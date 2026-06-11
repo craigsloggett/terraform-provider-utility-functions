@@ -11,32 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-var _ function.Function = DeepMerge{}
+var _ function.Function = DeepMergeFunction{}
 
-func NewDeepMerge() function.Function {
-	return DeepMerge{}
-}
+type DeepMergeFunction struct{}
 
-type DeepMerge struct{}
-
-func (r DeepMerge) Metadata(_ context.Context, req function.MetadataRequest, resp *function.MetadataResponse) {
-	resp.Name = "deep_merge"
-}
-
-func (r DeepMerge) Definition(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
-	resp.Definition = function.Definition{
-		Summary:             "Deeply merges an arbitrary number of maps or objects into a single object.",
-		Description:         "Deeply merges an arbitrary number of maps or objects into a single object. When a key collides and both values are maps or objects, they are merged recursively; otherwise the later value replaces the earlier one, including values of a different type.",
-		MarkdownDescription: "Deeply merges an arbitrary number of maps or objects into a single object. When a key collides and both values are maps or objects, they are merged recursively; otherwise the later value replaces the earlier one, including values of a different type.",
-		VariadicParameter: function.DynamicParameter{
-			Name:                "maps",
-			Description:         "An arbitrary number of maps or objects to merge.",
-			MarkdownDescription: "An arbitrary number of maps or objects to merge.",
-			AllowNullValue:      true,
-			AllowUnknownValues:  true,
-		},
-		Return: function.DynamicReturn{},
-	}
+func NewDeepMergeFunction() function.Function {
+	return DeepMergeFunction{}
 }
 
 // mergeable reports whether a value can participate in a recursive merge,
@@ -108,7 +88,27 @@ func mergeValues(earlier, later tftypes.Value) (tftypes.Value, error) {
 	return objectValue(merged), nil
 }
 
-func (r DeepMerge) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+func (r DeepMergeFunction) Metadata(_ context.Context, req function.MetadataRequest, resp *function.MetadataResponse) {
+	resp.Name = "deep_merge"
+}
+
+func (r DeepMergeFunction) Definition(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
+	resp.Definition = function.Definition{
+		Summary:             "Deeply merges an arbitrary number of maps or objects into a single object.",
+		Description:         "Deeply merges an arbitrary number of maps or objects into a single object. When a key collides and both values are maps or objects, they are merged recursively; otherwise the later value replaces the earlier one, including values of a different type.",
+		MarkdownDescription: "Deeply merges an arbitrary number of maps or objects into a single object. When a key collides and both values are maps or objects, they are merged recursively; otherwise the later value replaces the earlier one, including values of a different type.",
+		VariadicParameter: function.DynamicParameter{
+			Name:                "maps",
+			Description:         "An arbitrary number of maps or objects to merge.",
+			MarkdownDescription: "An arbitrary number of maps or objects to merge.",
+			AllowNullValue:      true,
+			AllowUnknownValues:  true,
+		},
+		Return: function.DynamicReturn{},
+	}
+}
+
+func (r DeepMergeFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
 	var inputs []types.Dynamic
 
 	resp.Error = function.ConcatFuncErrors(req.Arguments.Get(ctx, &inputs))
