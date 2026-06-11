@@ -82,7 +82,9 @@ jobs:
           go-version-file: go.mod
 
       - name: Install govulncheck
-        run: go install golang.org/x/vuln/cmd/govulncheck@v1.3.0
+        env:
+          GOVULNCHECK_VERSION: v1.3.0
+        run: go install "golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}"
 
       - name: Run govulncheck
         run: govulncheck ./...
@@ -118,8 +120,10 @@ jobs:
           go-version-file: go.mod
 
       - name: Validate Docs
+        env:
+          TFPLUGINDOCS_VERSION: v0.25.0
         run: |-
-          go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v0.25.0 validate
-          go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v0.25.0 generate \
+          go run "github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@${TFPLUGINDOCS_VERSION}" validate
+          go run "github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@${TFPLUGINDOCS_VERSION}" generate \
             -rendered-provider-name "Utility Functions" >/dev/null
           git diff --exit-code docs/
