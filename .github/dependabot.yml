@@ -6,18 +6,18 @@ updates:
     schedule:
       interval: weekly
     commit-message:
-      prefix: chore
+      prefix: chore(ci)
 
   - package-ecosystem: gomod
     directory: /
     schedule:
       interval: weekly
     commit-message:
-      prefix: chore
+      prefix: chore(deps)
 
   - package-ecosystem: terraform
     directory: /
     schedule:
       interval: weekly
     commit-message:
-      prefix: chore
+      prefix: chore(deps)
