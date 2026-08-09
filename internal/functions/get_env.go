@@ -7,19 +7,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/function"
 )
 
-var _ function.Function = GetEnvironmentVariable{}
+var _ function.Function = GetEnvironmentVariableFunction{}
 
-func NewGetEnvironmentVariable() function.Function {
-	return GetEnvironmentVariable{}
+type GetEnvironmentVariableFunction struct{}
+
+func NewGetEnvironmentVariableFunction() function.Function {
+	return GetEnvironmentVariableFunction{}
 }
 
-type GetEnvironmentVariable struct{}
-
-func (r GetEnvironmentVariable) Metadata(_ context.Context, req function.MetadataRequest, resp *function.MetadataResponse) {
+func (r GetEnvironmentVariableFunction) Metadata(_ context.Context, req function.MetadataRequest, resp *function.MetadataResponse) {
 	resp.Name = "get_env"
 }
 
-func (r GetEnvironmentVariable) Definition(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
+func (r GetEnvironmentVariableFunction) Definition(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
 	resp.Definition = function.Definition{
 		Summary:             "Return the value of an environment variable given the variable name.",
 		Description:         "Get the value of an environment variable.",
@@ -35,7 +35,7 @@ func (r GetEnvironmentVariable) Definition(_ context.Context, _ function.Definit
 	}
 }
 
-func (r GetEnvironmentVariable) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+func (r GetEnvironmentVariableFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
 	var data string
 
 	resp.Error = function.ConcatFuncErrors(req.Arguments.Get(ctx, &data))
